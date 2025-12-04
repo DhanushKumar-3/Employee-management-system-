@@ -1,0 +1,42 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="card-ems mb-3">
+  <h3>Admin Dashboard</h3>
+  <div class="row mt-3">
+    <div class="col-md-4">
+      <div class="card-ems">
+        <h6>Total Employees</h6>
+        <h2>{{ emp_total }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card-ems">
+        <h6>Departments</h6>
+        <h2>{{ departments|length }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card-ems">
+        <h6>Pending Leaves</h6>
+        <h2>{{ leave_pending }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-ems mb-3">
+  <h5>Employee Count by Department</h5>
+  <canvas id="deptChart"></canvas>
+</div>
+
+<script>
+const deptLabels = [{% for d in departments %}"{{ d.name }}",{% endfor %}];
+const deptData = [{% for d in departments %}{{ d.emp_count }},{% endfor %}];
+if (deptLabels.length){
+  new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: { labels: deptLabels, datasets: [{ label: 'Employees', data: deptData }]},
+  });
+}
+</script>
+{% endblock %}

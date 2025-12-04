@@ -1,0 +1,11 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="card-ems">
+  <h4>Apply Leave</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Apply</button>
+  </form>
+</div>
+{% endblock %}

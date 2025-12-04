@@ -1,0 +1,12 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="card-ems">
+  <h4>Create Manager</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a href="{% url 'manager_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

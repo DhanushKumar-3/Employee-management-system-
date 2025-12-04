@@ -1,0 +1,27 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="card-ems">
+  <div class="d-flex justify-content-between mb-2">
+    <h4>Employees</h4>
+    <a href="{% url 'employee_create' %}" class="btn btn-primary btn-sm">Create</a>
+  </div>
+  <table class="table table-dark table-striped table-sm align-middle">
+    <thead><tr><th>Emp ID</th><th>Name</th><th>Dept</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for e in employees %}
+      <tr>
+        <td>{{ e.employee_id }}</td>
+        <td>{{ e.user.get_full_name }} ({{ e.user.username }})</td>
+        <td>{{ e.department }}</td>
+        <td>
+          <a href="{% url 'employee_update' e.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+          <a href="{% url 'employee_delete' e.pk %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No employees.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

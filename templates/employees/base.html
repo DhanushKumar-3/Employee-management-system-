@@ -1,0 +1,120 @@
+{% load group_tags %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}EMS{% endblock %}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --text:#e6eef8; --muted:#94a3b8; --accent:#0ea5e9;
+  }
+  [data-theme='light']{
+    --bg:#f6f9fc; --card:#ffffff; --text:#0b1220; --muted:#475569; --accent:#0ea5e9;
+  }
+  body{background:var(--bg);color:var(--text);margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;background:#020617;color:var(--muted);padding:18px;z-index:50}
+  .sidebar a{display:block;padding:8px 10px;margin-bottom:6px;color:var(--muted);text-decoration:none;border-radius:8px;font-size:14px}
+  .sidebar a:hover{background:#0f172a;color:#e5e7eb}
+  .content{margin-left:250px;padding:20px}
+  .card-ems{background:var(--card);color:var(--text);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 8px 30px rgba(15,23,42,0.7)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .toast-container{position:fixed;top:12px;right:12px;z-index:2000}
+  .toast-msg{min-width:260px;margin-bottom:8px;padding:10px 14px;border-radius:8px;color:#0f172a;background:#bbf7d0;font-size:14px;box-shadow:0 8px 20px rgba(0,0,0,0.4);opacity:0;transform:translateY(-10px);transition:all .3s ease}
+  .toast-msg.error{background:#fecaca;}
+  .toast-msg.show{opacity:1;transform:translateY(0);}
+  @media(max-width:900px){
+    .sidebar{position:relative;width:100%;height:auto;display:flex;flex-wrap:wrap;gap:8px}
+    .content{margin-left:0;margin-top:10px}
+  }
+  </style>
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="sidebar">
+  <h4 class="mb-3">EMS</h4>
+
+  {% if user.is_superuser or user|has_group:"Admin" %}
+    <a href="{% url 'admin_dashboard' %}"><i class="fa fa-home"></i> Admin Dashboard</a>
+    <a href="{% url 'department_list' %}"><i class="fa fa-building"></i> Departments</a>
+    <a href="{% url 'manager_list' %}"><i class="fa fa-user-tie"></i> Managers</a>
+    <a href="{% url 'employee_list' %}"><i class="fa fa-users"></i> Employees</a>
+    <a href="{% url 'export_attendance_csv' %}"><i class="fa fa-file-csv"></i> Attendance CSV</a>
+    <a href="{% url 'export_salary_excel' %}"><i class="fa fa-file-excel"></i> Salary Excel</a>
+    <a href="{% url 'export_salary_pdf' %}"><i class="fa fa-file-pdf"></i> Salary PDF</a>
+  {% endif %}
+
+  {% if user|has_group:"Manager" %}
+    <a href="{% url 'manager_dashboard' %}"><i class="fa fa-chart-line"></i> Manager Dashboard</a>
+    <a href="{% url 'manager_employee_create' %}"><i class="fa fa-user-plus"></i> Add Employee</a>
+  {% endif %}
+
+  {% if user|has_group:"Employee" %}
+    <a href="{% url 'employee_dashboard' %}"><i class="fa fa-user"></i> My Dashboard</a>
+    <a href="{% url 'employee_profile_edit' %}"><i class="fa fa-id-badge"></i> Edit Profile</a>
+    <a href="{% url 'apply_leave' %}"><i class="fa fa-plane"></i> Apply Leave</a>
+  {% endif %}
+
+  <a href="{% url 'notifications' %}"><i class="fa fa-bell"></i> Notifications</a>
+  <a href="{% url 'logout' %}"><i class="fa fa-sign-out-alt"></i> Logout</a>
+  <hr>
+  <div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" id="darkSwitch">
+    <label class="form-check-label" for="darkSwitch">Light mode</label>
+  </div>
+</div>
+{% endif %}
+
+<div class="content">
+  {% if user.is_authenticated %}
+  <div class="topbar">
+    <div>Hello, <strong>{{ user.get_full_name|default:user.username }}</strong></div>
+  </div>
+  {% endif %}
+
+  <div class="toast-container" id="toastContainer">
+    {% for msg in messages %}
+      <div class="toast-msg {% if msg.tags == 'error' or msg.tags == 'danger' %}error{% endif %}">
+        {{ msg }}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+(function(){
+  const toggle = document.getElementById('darkSwitch');
+  const stored = localStorage.getItem('ems_theme');
+  if(stored === 'light'){
+    document.body.setAttribute('data-theme','light');
+    if(toggle) toggle.checked = true;
+  }
+  if(toggle){
+    toggle.addEventListener('change', ()=>{
+      if(toggle.checked){
+        document.body.setAttribute('data-theme','light');
+        localStorage.setItem('ems_theme','light');
+      } else {
+        document.body.removeAttribute('data-theme');
+        localStorage.setItem('ems_theme','dark');
+      }
+    });
+  }
+  // Toast auto-show & hide
+  const toasts = document.querySelectorAll('.toast-msg');
+  if(toasts.length){
+    setTimeout(()=>{ toasts.forEach(t=>t.classList.add('show')); }, 50);
+    setTimeout(()=>{
+      toasts.forEach(t=>{ t.classList.remove('show'); t.style.opacity = 0; });
+    }, 4000);
+  }
+})();
+</script>
+</body>
+</html>

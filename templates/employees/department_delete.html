@@ -1,0 +1,12 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="card-ems">
+  <h4>Delete Department</h4>
+  <p>Are you sure you want to delete the department <strong>{{ department.name }}</strong>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Yes, Delete</button>
+    <a href="{% url 'department_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

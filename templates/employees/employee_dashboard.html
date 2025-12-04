@@ -1,0 +1,61 @@
+{% extends "employees/base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    <div class="card-ems">
+      {% if profile.photo %}
+        <img src="{{ profile.photo.url }}" class="img-fluid mb-3 rounded">
+      {% endif %}
+      <h4>{{ profile.user.get_full_name }}</h4>
+      <p>{{ profile.designation }}<br>{{ profile.department }}</p>
+      <p><strong>Emp ID:</strong> {{ profile.employee_id }}</p>
+      <p><strong>Phone:</strong> {{ profile.phone }}</p>
+      <p><strong>Manager:</strong> {{ profile.department.manager.get_full_name|default:'-' }}</p>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card-ems mb-3">
+      <h5>Attendance (last 30 days)</h5>
+      <canvas id="attChart"></canvas>
+    </div>
+    <div class="card-ems mb-3">
+      <h5>Salary (last 12 months)</h5>
+      <canvas id="salaryChart"></canvas>
+    </div>
+    <div class="card-ems">
+      <h5>Attendance Calendar</h5>
+      <div id="calendar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const attLabels = [{% for a in attendance %}"{{ a.date }}",{% endfor %}];
+const attData = [{% for a in attendance %}{% if a.status == "Present" %}1{% else %}0{% endif %},{% endfor %}];
+
+if (attLabels.length){
+  new Chart(document.getElementById('attChart'), {
+    type: 'line',
+    data: { labels: attLabels, datasets: [{ label: 'Present(1)/Other(0)', data: attData }]},
+  });
+}
+
+const salaryLabels = [{% for s in salary reversed %}"{{ s.month }}",{% endfor %}];
+const salaryData = [{% for s in salary reversed %}{{ s.total_salary }},{% endfor %}];
+if (salaryLabels.length){
+  new Chart(document.getElementById('salaryChart'), {
+    type: 'bar',
+    data: { labels: salaryLabels, datasets: [{ label: 'Total Salary', data: salaryData }]},
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    events: '{% url "attendance_events" %}'
+  });
+  calendar.render();
+});
+</script>
+{% endblock %}
